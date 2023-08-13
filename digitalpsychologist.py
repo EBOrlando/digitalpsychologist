@@ -1,19 +1,25 @@
 import streamlit as st
 import openai
 
-# Initialize the messages list
-messages = []
+# Initialize the messages list with a system message
+messages = [{"role": "system", "content": "You are a psychologist expert in Freud."}]
 
 def CustomChatGPT(user_input):
     global messages
-    messages.append({"role": "user", "content": user_input})
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages
-    )
-    ChatGPT_reply = response["choices"][0]["message"]["content"]
-    messages.append({"role": "assistant", "content": ChatGPT_reply})
-    return ChatGPT_reply
+    try:
+        messages.append({"role": "user", "content": user_input})
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages
+        )
+        ChatGPT_reply = response["choices"][0]["message"]["content"]
+        messages.append({"role": "assistant", "content": ChatGPT_reply})
+        return ChatGPT_reply
+    except openai.error.OpenAIError as e:
+        if "quota" in str(e).lower():
+            return "Seu saldo é insuficiente para continuar usando a ferramenta. Por favor atualize suas opções de pagamento."
+        else:
+            return "An error occurred: " + str(e)
 
 def main():
     st.title("Digital Psychologist")
